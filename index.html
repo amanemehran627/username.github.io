@@ -1,73 +1,269 @@
-let charges = 3;
-const API_URL = 'http://159.69.28.25:5000/calculate';
-
-function calculateIncome() {
-    if (charges <= 0) {
-        document.getElementById('noBatteriesPanel').style.display = 'block';
-        document.body.classList.add('no-scroll', 'no-click');
-        return;
-    }
-
-    const power = document.getElementById('powerInput').value;
-    if (!power || power <= 0) {
-        alert('Please enter a valid power value.');
-        return;
-    }
-
-    const calculateButton = document.querySelector('button[onclick="calculateIncome()"]');
-    calculateButton.disabled = true;
-
-    const rows = document.querySelectorAll('#result table tr');
-    rows.forEach((row, index) => {
-        if (index > 0) {
-            row.cells[1].innerHTML = '<span class="loading-amount"></span>';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RollerCoin Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            color: #333;
         }
-    });
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: calc(100% - 40px);
+            max-width: 400px;
+        }
+        button {
+            background-color: #ff7e5f;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            width: auto;
+            height: auto;
+            padding: 10px 20px;
+            font-weight: bold;
+            box-shadow: 0 4px #666;
+        }
+        button:active {
+            background-color: #feb47b;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
+        button:hover {
+            background-color: #feb47b;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: left;
+            width: 50%;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .progress-bar-container {
+            width: 100%;
+            max-width: 400px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #00ff00, #006400);
+            width: 100%;
+            transition: width 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            animation: charging 1s infinite;
+        }
+        .progress-bar.no-charging::before {
+            display: none;
+        }
+        @keyframes charging {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            text-align: center;
+        }
+        .panel-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <h1>RollerCoin Calculator</h1>
+    <input type="number" id="powerInput" placeholder="Enter your power in PH/s">
+    <button onclick="calculateIncome()">Calculate</button>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="panel" id="noBatteriesPanel">
+        <div class="panel-content">
+            <h2>No more batteries</h2>
+            <button onclick="getFreeBatteries()">Get free 3 batteries</button>
+            <button onclick="closePanel()">Close</button>
+        </div>
+    </div>
+    <div class="result" id="result">
+        <strong>Daily Income</strong>
+        <table>
+            <tr><th>Currency</th><th>Amount</th></tr>
+            <tr><td><img src="Coin_Icon/rlt.svg" width="16" height="16" alt="RLT"> RLT</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/rst.svg" width="16" height="16" alt="RST"> RST</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/xrp.svg" width="16" height="16" alt="XRP"> XRP</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/doge.svg" width="16" height="16" alt="DOGE"> DOGE</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/btc.svg" width="16" height="16" alt="BTC"> BTC</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/eth.svg" width="16" height="16" alt="ETH"> ETH</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/bnb.svg" width="16" height="16" alt="BNB"> BNB</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/matic.svg" width="16" height="16" alt="MATIC"> MATIC</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/sol.svg" width="16" height="16" alt="SOL"> SOL</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/trx.svg" width="16" height="16" alt="TRX"> TRX</td><td>0</td></tr>
+            <tr><td><img src="Coin_Icon/ltc.svg" width="16" height="16" alt="LTC"> LTC</td><td>0</td></tr>
+        </table>
+    </div>
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', API_URL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
+    <script>
+        let charges = 3;
+        const API_URL = 'http://159.69.28.25:5000/calculate';
 
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            try {
-                const response = JSON.parse(xhr.responseText);
-                if (response.message) {
-                    const rewards = response.message.split('\n').map(line => line.split(': '));
-                    rewards.forEach((reward, index) => {
-                        if (rows[index + 1]) {
-                            rows[index + 1].cells[1].innerHTML = reward[1];
-                        }
-                    });
-                    charges--;
-                    updateProgressBar();
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progressBar');
+            const percentage = (charges / 3) * 100;
+            progressBar.style.width = `${percentage}%`;
+            if (charges <= 0) {
+                progressBar.style.background = 'linear-gradient(to right, #555, #000)';
+                progressBar.classList.add('no-charging');
+            } else {
+                progressBar.style.background = 'linear-gradient(to right, #00ff00, #006400)';
+                progressBar.classList.remove('no-charging');
+            }
+        }
+
+        function calculateIncome() {
+            if (charges <= 0) {
+                document.getElementById('noBatteriesPanel').style.display = 'block';
+                document.body.classList.add('no-scroll', 'no-click');
+                return;
+            }
+
+            const power = document.getElementById('powerInput').value;
+            if (!power || power <= 0) {
+                alert('Please enter a valid power value.');
+                return;
+            }
+
+            const calculateButton = document.querySelector('button[onclick="calculateIncome()"]');
+            calculateButton.disabled = true;
+
+            const rows = document.querySelectorAll('#result table tr');
+            rows.forEach((row, index) => {
+                if (index > 0) {
+                    row.cells[1].innerHTML = '';
                 }
-            } catch (e) {
-                console.error('Error parsing response:', e);
-                alert('Error calculating rewards. Please try again.');
-            }
-        } else {
-            console.error('Server error:', xhr.status);
-            alert('Error calculating rewards. Please try again.');
+            });
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', API_URL, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response.message) {
+                            const rewards = response.message.split('\n').map(line => line.split(': '));
+                            rewards.forEach((reward, index) => {
+                                if (rows[index + 1]) {
+                                    rows[index + 1].cells[1].innerHTML = reward[1];
+                                }
+                            });
+                            charges--;
+                            updateProgressBar();
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        alert('Error calculating rewards. Please try again.');
+                    }
+                } else {
+                    console.error('Server error:', xhr.status);
+                    alert('Error calculating rewards. Please try again.');
+                }
+                calculateButton.disabled = false;
+            };
+
+            xhr.onerror = function() {
+                console.error('Network error occurred');
+                alert('Network error. Please check your connection and try again.');
+                calculateButton.disabled = false;
+                rows.forEach((row, index) => {
+                    if (index > 0) {
+                        row.cells[1].innerHTML = '0';
+                    }
+                });
+            };
+
+            xhr.send(JSON.stringify({ power: parseInt(power) }));
         }
-        calculateButton.disabled = false;
-        rows.forEach((row, index) => {
-            if (index > 0 && row.cells[1].innerHTML.includes('loading-amount')) {
-                row.cells[1].innerHTML = '0';
-            }
-        });
-    };
 
-    xhr.onerror = function() {
-        console.error('Network error occurred');
-        alert('Network error. Please check your connection and try again.');
-        calculateButton.disabled = false;
-        rows.forEach((row, index) => {
-            if (index > 0) {
-                row.cells[1].innerHTML = '0';
-            }
-        });
-    };
+        function getFreeBatteries() {
+            charges = 3;
+            updateProgressBar();
+            closePanel();
+        }
 
-    xhr.send(JSON.stringify({ power: parseInt(power) }));
-}
+        function closePanel() {
+            document.getElementById('noBatteriesPanel').style.display = 'none';
+            document.body.classList.remove('no-scroll', 'no-click');
+        }
+
+        updateProgressBar();
+    </script>
+</body>
+</html>
