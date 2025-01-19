@@ -298,7 +298,7 @@ const cryptocurrencies = [
 // Ad System with Improved Error Handling
 async function loadAdsConfig() {
     try {
-        const response = await fetch('http://65.108.28.116:5000/ads', {
+        const response = await fetch('http://65.108.28.116:5000/calculate', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -409,7 +409,7 @@ async function calculateIncome() {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/calculate', {
+        const response = await fetch('http://65.108.28.116:5000/calculate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
