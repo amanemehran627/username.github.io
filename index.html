@@ -1,323 +1,461 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RollerCoin Calculator</title>
-    <!-- <script src="https://telegram.org/js/telegram-web-app.js"></script> -->
-    <!-- <script src="https://sad.adsgram.ai/js/sad.min.js"></script> -->
-    <!-- <script src="ads.js"></script> --> <!-- Include the ads.js file -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhanced 3D RollerCoin Calculator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+--primary-color: #1a1f3c;
+--secondary-color: #4a90e2;
+--accent-color: #ff6b6b;
+--text-color: #ffffff;
+--card-bg: rgba(28, 39, 60, 0.8);
+}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(to right, #ff7e5f, #feb47b); /* Add gradient background */
-            color: #333;
-        }
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            color: #fff; /* Change header color */
-        }
-        input, button {
-            margin: 10px;
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 10px; /* Add border-radius for curved corners */
-            border: none; /* Remove border */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
-        }
-        input {
-            width: calc(100% - 40px); /* Make input full width */
-            max-width: 400px; /* Limit max width */
-        }
-        button {
-            background-color: #ff7e5f; /* Button background color */
-            color: #fff; /* Button text color */
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s; /* Smooth transition */
-            border: 2px solid #fff; /* Add border */
-            border-radius: 5px; /* Slightly rounded corners */
-            width: auto; /* Adjust width to fit text */
-            height: auto; /* Adjust height to fit text */
-            padding: 10px 20px; /* Adjust padding */
-            font-weight: bold; /* Bold text */
-            box-shadow: 0 4px #666; /* Shadow to give a 3D effect */
-        }
-        button:active {
-            background-color: #feb47b; /* Change color on click */
-            box-shadow: 0 2px #666; /* Reduce shadow on click */
-            transform: translateY(2px); /* Move button down on click */
-        }
-        button:hover {
-            background-color: #feb47b; /* Change color on hover */
-        }
-        .result {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #fff; /* Change result text color */
-        }
-        .loading {
-            display: none;
-            margin-top: 20px;
-            font-size: 18px;
-            color: blue;
-        }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-            border-radius: 10px; /* Add border-radius for curved corners */
-            overflow: hidden; /* Ensure the border-radius is applied to the table */
-            background: rgba(255, 255, 255, 0.2); /* Semi-transparent background for glass effect */
-            backdrop-filter: blur(10px); /* Blur effect for glass effect */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
-        }
-        th, td {
-            padding: 10px; /* Increase padding */
-            border: 1px solid rgba(255, 255, 255, 0.3); /* Semi-transparent border */
-            text-align: left;
-            width: 50%; /* Set a fixed width for table cells */
-        }
-        th {
-            background: rgba(255, 255, 255, 0.3); /* Semi-transparent background for header */
-        }
-        .progress-bar-container {
-            width: 100%;
-            max-width: 400px;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 20px auto;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(to right, #00ff00, #006400);
-            width: 100%;
-            transition: width 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .progress-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            animation: charging 1s infinite;
-        }
-        .progress-bar.no-charging::before {
-            display: none;
-        }
-        @keyframes charging {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        .panel {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
-            z-index: 1000; /* Ensure it overlays all elements */
-            text-align: center;
-            padding-top: 20%;
-        }
-        .panel-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-            position: absolute; /* Change to absolute positioning */
-            top: 50%; /* Center vertically */
-            left: 50%; /* Center horizontally */
-            transform: translate(-50%, -50%); /* Adjust position to be exactly in the center */
-        }
-        .panel h2 {
-            margin-bottom: 20px;
-        }
-        .panel button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            background-color: #ff7e5f; /* Add background color */
-            color: #fff; /* Add text color */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
-            transition: background-color 0.3s, transform 0.1s; /* Smooth transition */
-            width: auto; /* Adjust width to fit text */
-            height: auto; /* Adjust height to fit text */
-            padding: 10px 20px; /* Adjust padding */
-        }
-        .panel button:active {
-            background-color: #feb47b; /* Change color on click */
-            box-shadow: 0 2px #666; /* Reduce shadow on click */
-            transform: translateY(2px); /* Move button down on click */
-        }
-        .panel button:hover {
-            background-color: #feb47b; /* Change color on hover */
-        }
-        .panel-content button {
-            display: block; /* Stack buttons vertically */
-            width: 100%; /* Full width */
-            margin: 10px 0; /* Vertical margin */
-        }
-        body.no-scroll {
-            overflow: hidden; /* Disable scrolling */
-        }
-        body.no-click {
-            pointer-events: none; /* Disable clicking */
-        }
-        body.no-click .panel {
-            pointer-events: auto; /* Enable clicking on the panel */
-        }
-    </style>
-    <style>
-        @keyframes dots {
-            0%, 20% { content: ""; }
-            40% { content: "."; }
-            60% { content: ".."; }
-            80%, 100% { content: "..."; }
-        }
-        .loading-amount::after {
-            content: "...";
-            animation: dots 1.5s infinite;
-        }
-    </style>
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+body {
+background: linear-gradient(135deg, #0f172a, #1e293b);
+color: var(--text-color);
+min-height: 100vh;
+perspective: 1000px;
+}
+
+#background-canvas {
+position: fixed;
+top: 0;
+left: 0;
+z-index: -1;
+}
+
+.container {
+max-width: 1400px;
+margin: 0 auto;
+padding: 2rem;
+transform-style: preserve-3d;
+}
+
+.calculator-section {
+background: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(20px);
+padding: 2.5rem;
+border-radius: 20px;
+box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+margin-bottom: 2rem;
+animation: float 6s ease-in-out infinite;
+border: 1px solid rgba(255, 255, 255, 0.1);
+transform-style: preserve-3d;
+}
+
+.input-group {
+margin-bottom: 2rem;
+transform: translateZ(20px);
+}
+
+h1 {
+font-size: 2.5rem;
+margin-bottom: 2rem;
+background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+text-align: center;
+transform: translateZ(30px);
+}
+
+label {
+display: block;
+margin-bottom: 0.8rem;
+font-weight: 600;
+color: var(--secondary-color);
+font-size: 1.1rem;
+transform: translateZ(10px);
+}
+
+input {
+width: 100%;
+padding: 1rem;
+border: 2px solid rgba(74, 144, 226, 0.3);
+border-radius: 12px;
+background: rgba(255, 255, 255, 0.05);
+color: var(--text-color);
+font-size: 1.1rem;
+transition: all 0.3s ease;
+transform: translateZ(15px);
+}
+
+input:focus {
+outline: none;
+border-color: var(--secondary-color);
+box-shadow: 0 0 15px rgba(74, 144, 226, 0.3);
+}
+
+button {
+background: linear-gradient(45deg, var(--secondary-color), #2980b9);
+color: white;
+border: none;
+padding: 1.2rem 2.5rem;
+border-radius: 12px;
+cursor: pointer;
+font-size: 1.1rem;
+font-weight: 600;
+transition: all 0.3s ease;
+transform: translateZ(20px);
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+transform: translateZ(25px) translateY(-2px);
+box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
+}
+
+.crypto-list {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 2rem;
+margin-top: 3rem;
+perspective: 1000px;
+}
+
+.crypto-card {
+background: var(--card-bg);
+padding: 2rem;
+border-radius: 15px;
+text-align: center;
+transition: all 0.4s ease;
+position: relative;
+transform-style: preserve-3d;
+border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.crypto-card:hover {
+transform: translateZ(20px) rotateX(5deg) rotateY(5deg);
+box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.crypto-icon {
+width: 60px;
+height: 60px;
+margin-bottom: 1.5rem;
+filter: drop-shadow(0 0 10px rgba(74, 144, 226, 0.5));
+transform: translateZ(30px);
+}
+
+.crypto-name {
+font-size: 1.3rem;
+font-weight: bold;
+margin-bottom: 1rem;
+color: var(--secondary-color);
+transform: translateZ(25px);
+}
+
+.income-display {
+margin-top: 1.5rem;
+font-size: 1rem;
+transform: translateZ(20px);
+}
+
+.daily-income, .monthly-income {
+display: block;
+margin-top: 0.8rem;
+color: #4a90e2;
+font-weight: 500;
+}
+
+.ad-modal {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+backdrop-filter: blur(8px);
+}
+
+.ad-content {
+background: var(--card-bg);
+padding: 2rem;
+border-radius: 20px;
+max-width: 800px;
+width: 90%;
+position: relative;
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ad-media {
+width: 100%;
+max-height: 450px;
+object-fit: contain;
+border-radius: 10px;
+margin-bottom: 1rem;
+cursor: pointer;
+}
+
+.close-ad {
+position: absolute;
+top: 1rem;
+right: 1rem;
+background: var(--accent-color);
+color: white;
+border: none;
+padding: 0.5rem 1rem;
+border-radius: 8px;
+cursor: pointer;
+display: none;
+}
+
+@keyframes float {
+0%, 100% {
+transform: translateY(0);
+}
+50% {
+transform: translateY(-10px);
+}
+}
+
+@keyframes fadeIn {
+from {
+opacity: 0;
+transform: translateY(20px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+</style>
 </head>
 <body>
-    <h1>RollerCoin Calculator</h1>
-    <input type="number" id="powerInput" placeholder="Enter your power in PH/s">
-    <button onclick="calculateIncome()">Calculate</button>
-    <div class="progress-bar-container">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div class="panel" id="noBatteriesPanel">
-        <div class="panel-content">
-            <h2>No more batteries</h2>
-            <button onclick="getFreeBatteries()">Get free 3 batteries</button>
-            <button onclick="closePanel()">Close</button>
-        </div>
-    </div>
-    <div class="result" id="result">
-        <strong>Daily Income</strong>
-        <table>
-            <tr><th>Currency</th><th>Amount</th></tr>
-            <tr><td><img src="Coin_Icon/rlt.svg" width="16" height="16" alt="RLT"> RLT</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/rst.svg" width="16" height="16" alt="RST"> RST</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/xrp.svg" width="16" height="16" alt="XRP"> XRP</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/doge.svg" width="16" height="16" alt="DOGE"> DOGE</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/btc.svg" width="16" height="16" alt="BTC"> BTC</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/eth.svg" width="16" height="16" alt="ETH"> ETH</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/bnb.svg" width="16" height="16" alt="BNB"> BNB</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/matic.svg" width="16" height="16" alt="MATIC"> MATIC</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/sol.svg" width="16" height="16" alt="SOL"> SOL</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/trx.svg" width="16" height="16" alt="TRX"> TRX</td><td>0</td></tr>
-            <tr><td><img src="Coin_Icon/ltc.svg" width="16" height="16" alt="LTC"> LTC</td><td>0</td></tr>
-        </table>
-    </div>
-    <div class="loading" id="loading" style="display: none;"></div> <!-- Hide the loading div -->
+<canvas id="background-canvas"></canvas>
+<div class="container">
+<div class="calculator-section">
+<h1>RollerCoin Calculator</h1>
+<div class="input-group">
+<label for="power">Mining Power (PH/s)</label>
+<input type="number" id="power" placeholder="Enter your mining power" disabled>
+</div>
+<button onclick="calculateIncome()" id="calculateBtn" disabled>Calculate Income</button>
+<div class="results" id="results"></div>
+</div>
 
-    <script>
-        let charges = 3;
+<div class="crypto-list" id="cryptoList"></div>
+</div>
 
-        function updateProgressBar() {
-            const progressBar = document.getElementById('progressBar');
-            const percentage = (charges / 3) * 100;
-            progressBar.style.width = `${percentage}%`;
-            if (charges <= 0) {
-                progressBar.style.background = 'linear-gradient(to right, #555, #000)';
-                progressBar.classList.add('no-charging');
-            } else {
-                progressBar.style.background = 'linear-gradient(to right, #00ff00, #006400)';
-                progressBar.classList.remove('no-charging');
+<script>
+// Three.js Background Animation
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('background-canvas'), alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+const material = new THREE.MeshBasicMaterial({ 
+    color: 0x4a90e2,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.1
+});
+const torusKnot = new THREE.Mesh(geometry, material);
+scene.add(torusKnot);
+
+camera.position.z = 30;
+
+function animate() {
+    requestAnimationFrame(animate);
+    torusKnot.rotation.x += 0.001;
+    torusKnot.rotation.y += 0.002;
+    renderer.render(scene, camera);
+}
+animate();
+
+// Updated Cryptocurrencies Array with SVG files
+const cryptocurrencies = [
+    { symbol: 'RLT', name: 'RollerToken', iconFile: 'icons/rlt.svg' },
+    { symbol: 'RST', name: 'RollerStarter', iconFile: 'icons/rst.svg' },
+    { symbol: 'XRP', name: 'Ripple', iconFile: 'icons/xrp.svg' },
+    { symbol: 'TRX', name: 'TRON', iconFile: 'icons/trx.svg' },
+    { symbol: 'DOGE', name: 'Dogecoin', iconFile: 'icons/doge.svg' },
+    { symbol: 'BTC', name: 'Bitcoin', iconFile: 'icons/btc.svg' },
+    { symbol: 'ETH', name: 'Ethereum', iconFile: 'icons/eth.svg' },
+    { symbol: 'BNB', name: 'Binance Coin', iconFile: 'icons/bnb.svg' },
+    { symbol: 'POL', name: 'Polygon', iconFile: 'icons/pol.svg' },
+    { symbol: 'SOL', name: 'Solana', iconFile: 'icons/sol.svg' },
+    { symbol: 'LTC', name: 'Litecoin', iconFile: 'icons/ltc.svg' }
+];
+
+// Updated Ad System with Dynamic Loading
+async function loadAdsConfig() {
+    try {
+        const response = await fetch('http://65.108.28.116:5000/ads');
+        if (!response.ok) {
+            throw new Error('Failed to load ads configuration');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error loading ads:', error);
+        return { ads: [] };
+    }
+}
+
+async function showAd() {
+    try {
+        const adsConfig = await loadAdsConfig();
+        if (!adsConfig.ads || adsConfig.ads.length === 0) {
+            document.getElementById('power').disabled = false;
+            document.getElementById('calculateBtn').disabled = false;
+            return;
+        }
+
+        const ad = adsConfig.ads[Math.floor(Math.random() * adsConfig.ads.length)];
+        const modal = document.createElement('div');
+        modal.className = 'ad-modal';
+
+        const content = document.createElement('div');
+        content.className = 'ad-content';
+
+        let mediaElement;
+        if (ad.type === 'video') {
+            mediaElement = document.createElement('video');
+            mediaElement.autoplay = true;
+            mediaElement.controls = true;
+            mediaElement.onended = () => {
+                document.querySelector('.close-ad').style.display = 'block';
+            };
+        } else {
+            mediaElement = document.createElement('img');
+            setTimeout(() => {
+                document.querySelector('.close-ad').style.display = 'block';
+            }, ad.duration * 1000);
+        }
+
+        mediaElement.className = 'ad-media';
+        mediaElement.src = ad.source;
+        mediaElement.onclick = () => window.open(ad.link, '_blank');
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'close-ad';
+        closeButton.textContent = 'Close Ad';
+        closeButton.style.display = 'none';
+
+        closeButton.onclick = () => {
+            modal.remove();
+            document.getElementById('power').disabled = false;
+            document.getElementById('calculateBtn').disabled = false;
+        };
+
+        content.appendChild(mediaElement);
+        content.appendChild(closeButton);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+    } catch (error) {
+        console.error('Error showing ad:', error);
+        document.getElementById('power').disabled = false;
+        document.getElementById('calculateBtn').disabled = false;
+    }
+}
+
+function initializeCryptoList() {
+    const cryptoList = document.getElementById('cryptoList');
+    cryptocurrencies.forEach(crypto => {
+        const card = document.createElement('div');
+        card.className = 'crypto-card';
+        card.innerHTML = `
+            <img src="${crypto.iconFile}" class="crypto-icon" alt="${crypto.name} icon">
+            <div class="crypto-name">${crypto.name}</div>
+            <div class="crypto-symbol">${crypto.symbol}</div>
+            <div class="income-display">
+                <span class="daily-income" id="daily-${crypto.symbol}">Daily: --</span>
+                <span class="monthly-income" id="monthly-${crypto.symbol}">Monthly: --</span>
+            </div>
+        `;
+        cryptoList.appendChild(card);
+    });
+}
+
+async function calculateIncome() {
+    const power = parseFloat(document.getElementById('power').value);
+    if (isNaN(power) || power <= 0) {
+        alert('Please enter a valid mining power value');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://65.108.28.116:5000/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ power: power })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+
+        cryptocurrencies.forEach(crypto => {
+            if (data[crypto.symbol.toLowerCase()]) {
+                const result = data[crypto.symbol.toLowerCase()];
+                document.getElementById(`daily-${crypto.symbol}`).textContent = 
+                    `Daily: ${result.daily.toFixed(8)} ${result.unit}`;
+                document.getElementById(`monthly-${crypto.symbol}`).textContent = 
+                    `Monthly: ${result.monthly.toFixed(8)} ${result.unit}`;
             }
-        }
+        });
+    } catch (error) {
+        console.error('Error fetching income data:', error);
+        alert('Failed to fetch income data. Please try again.');
+    }
+}
 
-        function calculateIncome() {
-            if (charges <= 0) {
-                document.getElementById('noBatteriesPanel').style.display = 'block';
-                document.body.classList.add('no-scroll', 'no-click'); // Disable scrolling and clicking
-                return;
-            }
+window.onload = () => {
+    initializeCryptoList();
+    showAd().then(() => {
+        // Enable inputs after ad is shown or if there's an error
+        document.getElementById('power').disabled = false;
+        document.getElementById('calculateBtn').disabled = false;
+    }).catch(error => {
+        console.error('Error in ad display:', error);
+        // Enable inputs even if ad fails
+        document.getElementById('power').disabled = false;
+        document.getElementById('calculateBtn').disabled = false;
+    });
+};
 
-            const power = document.getElementById('powerInput').value;
-            if (!power) {
-                alert('Please enter your power.');
-                return;
-            }
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
-            const calculateButton = document.querySelector('button[onclick="calculateIncome()"]');
-            calculateButton.disabled = true; // Disable the button
+// Handle Telegram WebApp initialization
+let tg = window.Telegram.WebApp;
+if (tg) {
+    tg.ready();
+    tg.expand();
+}
 
-            const loadingDiv = document.getElementById('loading');
-            const resultDiv = document.getElementById('result');
-            loadingDiv.style.display = 'none'; // Hide the loading div
-
-            // Show loading animation in the Amount column
-            const rows = resultDiv.querySelectorAll('table tr');
-            rows.forEach((row, index) => {
-                if (index > 0) { // Skip the header row
-                    const amountCell = row.cells[1];
-                    amountCell.classList.add('loading-amount');
-                    amountCell.innerHTML = '';
-                }
-            });
-
-            // Replace with your local server URL
-            const serverUrl = 'http://localhost:5000/calculate';
-
-            fetch(serverUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ power: power }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                const rewards = data.message.split('\n').map(line => line.split(': '));
-                rewards.forEach((reward, index) => {
-                    const row = rows[index + 1]; // Skip the header row
-                    const amountCell = row.cells[1];
-                    amountCell.classList.remove('loading-amount');
-                    amountCell.innerHTML = reward[1];
-                });
-
-                charges--;
-                updateProgressBar();
-                calculateButton.disabled = false; // Re-enable the button
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while calculating the income.');
-                calculateButton.disabled = false; // Re-enable the button in case of error
-            });
-        }
-
-        function getFreeBatteries() {
-            charges = 3;
-            updateProgressBar();
-            closePanel();
-        }
-
-        function closePanel() {
-            document.getElementById('noBatteriesPanel').style.display = 'none';
-            document.body.classList.remove('no-scroll', 'no-click'); // Re-enable scrolling and clicking
-        }
-
-        updateProgressBar();
-    </script>
+// Listen for power updates from the main app
+window.addEventListener('message', async (event) => {
+    if (event.data && event.data.power) {
+        const powerInput = document.getElementById('power');
+        powerInput.value = event.data.power;
+        await calculateIncome();
+    }
+});
+</script>
 </body>
 </html>
