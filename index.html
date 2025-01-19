@@ -4,85 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RollerCoin Calculator</title>
-    <!-- <script src="https://telegram.org/js/telegram-web-app.js"></script> -->
-    <!-- <script src="https://sad.adsgram.ai/js/sad.min.js"></script> -->
-    <!-- <script src="ads.js"></script> --> <!-- Include the ads.js file -->
-
     <style>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
             text-align: center;
-            background: linear-gradient(to right, #ff7e5f, #feb47b); /* Add gradient background */
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
             color: #333;
         }
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
-            color: #fff; /* Change header color */
+            color: #fff;
         }
         input, button {
             margin: 10px;
             padding: 10px;
             font-size: 16px;
-            border-radius: 10px; /* Add border-radius for curved corners */
-            border: none; /* Remove border */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         input {
-            width: calc(100% - 40px); /* Make input full width */
-            max-width: 400px; /* Limit max width */
+            width: calc(100% - 40px);
+            max-width: 400px;
         }
         button {
-            background-color: #ff7e5f; /* Button background color */
-            color: #fff; /* Button text color */
+            background-color: #ff7e5f;
+            color: #fff;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s; /* Smooth transition */
-            border: 2px solid #fff; /* Add border */
-            border-radius: 5px; /* Slightly rounded corners */
-            width: auto; /* Adjust width to fit text */
-            height: auto; /* Adjust height to fit text */
-            padding: 10px 20px; /* Adjust padding */
-            font-weight: bold; /* Bold text */
-            box-shadow: 0 4px #666; /* Shadow to give a 3D effect */
+            transition: background-color 0.3s, transform 0.1s;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            width: auto;
+            height: auto;
+            padding: 10px 20px;
+            font-weight: bold;
+            box-shadow: 0 4px #666;
         }
         button:active {
-            background-color: #feb47b; /* Change color on click */
-            box-shadow: 0 2px #666; /* Reduce shadow on click */
-            transform: translateY(2px); /* Move button down on click */
+            background-color: #feb47b;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
         }
         button:hover {
-            background-color: #feb47b; /* Change color on hover */
+            background-color: #feb47b;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         .result {
             margin-top: 20px;
             font-size: 18px;
-            color: #fff; /* Change result text color */
-        }
-        .loading {
-            display: none;
-            margin-top: 20px;
-            font-size: 18px;
-            color: blue;
+            color: #fff;
         }
         table {
             width: 100%;
             margin-top: 20px;
             border-collapse: collapse;
-            border-radius: 10px; /* Add border-radius for curved corners */
-            overflow: hidden; /* Ensure the border-radius is applied to the table */
-            background: rgba(255, 255, 255, 0.2); /* Semi-transparent background for glass effect */
-            backdrop-filter: blur(10px); /* Blur effect for glass effect */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         th, td {
-            padding: 10px; /* Increase padding */
-            border: 1px solid rgba(255, 255, 255, 0.3); /* Semi-transparent border */
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             text-align: left;
-            width: 50%; /* Set a fixed width for table cells */
+            width: 50%;
         }
         th {
-            background: rgba(255, 255, 255, 0.3); /* Semi-transparent background for header */
+            background: rgba(255, 255, 255, 0.3);
         }
         .progress-bar-container {
             width: 100%;
@@ -127,63 +121,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
-            z-index: 1000; /* Ensure it overlays all elements */
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
             text-align: center;
-            padding-top: 20%;
         }
         .panel-content {
             background: white;
             padding: 20px;
             border-radius: 10px;
             display: inline-block;
-            position: absolute; /* Change to absolute positioning */
-            top: 50%; /* Center vertically */
-            left: 50%; /* Center horizontally */
-            transform: translate(-50%, -50%); /* Adjust position to be exactly in the center */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
-        .panel h2 {
-            margin-bottom: 20px;
-        }
-        .panel button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            background-color: #ff7e5f; /* Add background color */
-            color: #fff; /* Add text color */
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
-            transition: background-color 0.3s, transform 0.1s; /* Smooth transition */
-            width: auto; /* Adjust width to fit text */
-            height: auto; /* Adjust height to fit text */
-            padding: 10px 20px; /* Adjust padding */
-        }
-        .panel button:active {
-            background-color: #feb47b; /* Change color on click */
-            box-shadow: 0 2px #666; /* Reduce shadow on click */
-            transform: translateY(2px); /* Move button down on click */
-        }
-        .panel button:hover {
-            background-color: #feb47b; /* Change color on hover */
-        }
-        .panel-content button {
-            display: block; /* Stack buttons vertically */
-            width: 100%; /* Full width */
-            margin: 10px 0; /* Vertical margin */
-        }
-        body.no-scroll {
-            overflow: hidden; /* Disable scrolling */
-        }
-        body.no-click {
-            pointer-events: none; /* Disable clicking */
-        }
-        body.no-click .panel {
-            pointer-events: auto; /* Enable clicking on the panel */
-        }
-    </style>
-    <style>
         @keyframes dots {
             0%, 20% { content: ""; }
             40% { content: "."; }
@@ -193,6 +144,15 @@
         .loading-amount::after {
             content: "...";
             animation: dots 1.5s infinite;
+        }
+        body.no-scroll {
+            overflow: hidden;
+        }
+        body.no-click {
+            pointer-events: none;
+        }
+        body.no-click .panel {
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -227,10 +187,10 @@
             <tr><td><img src="Coin_Icon/ltc.svg" width="16" height="16" alt="LTC"> LTC</td><td>0</td></tr>
         </table>
     </div>
-    <div class="loading" id="loading" style="display: none;"></div> <!-- Hide the loading div -->
 
     <script>
         let charges = 3;
+        const API_URL = 'http://159.69.28.25:5000/calculate';
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
@@ -245,10 +205,10 @@
             }
         }
 
-        function calculateIncome() {
+        async function calculateIncome() {
             if (charges <= 0) {
                 document.getElementById('noBatteriesPanel').style.display = 'block';
-                document.body.classList.add('no-scroll', 'no-click'); // Disable scrolling and clicking
+                document.body.classList.add('no-scroll', 'no-click');
                 return;
             }
 
@@ -259,51 +219,66 @@
             }
 
             const calculateButton = document.querySelector('button[onclick="calculateIncome()"]');
-            calculateButton.disabled = true; // Disable the button
+            calculateButton.disabled = true;
 
-            const loadingDiv = document.getElementById('loading');
             const resultDiv = document.getElementById('result');
-            loadingDiv.style.display = 'none'; // Hide the loading div
-
-            // Show loading animation in the Amount column
             const rows = resultDiv.querySelectorAll('table tr');
+            
+            // Show loading state
             rows.forEach((row, index) => {
-                if (index > 0) { // Skip the header row
+                if (index > 0) {
                     const amountCell = row.cells[1];
                     amountCell.classList.add('loading-amount');
                     amountCell.innerHTML = '';
                 }
             });
 
-            // Update server URL to point to your hosted API
-            const serverUrl = 'http://159.69.28.25:5000/calculate';
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ power: parseInt(power) })
+                });
 
-            fetch(serverUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ power: power }),
-            })
-            .then(response => response.json())
-            .then(data => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
                 const rewards = data.message.split('\n').map(line => line.split(': '));
                 rewards.forEach((reward, index) => {
-                    const row = rows[index + 1]; // Skip the header row
-                    const amountCell = row.cells[1];
-                    amountCell.classList.remove('loading-amount');
-                    amountCell.innerHTML = reward[1];
+                    const row = rows[index + 1];
+                    if (row) {
+                        const amountCell = row.cells[1];
+                        amountCell.classList.remove('loading-amount');
+                        amountCell.innerHTML = reward[1];
+                    }
                 });
 
                 charges--;
                 updateProgressBar();
-                calculateButton.disabled = false; // Re-enable the button
-            })
-            .catch(error => {
+
+            } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred while calculating the income.');
-                calculateButton.disabled = false; // Re-enable the button in case of error
-            });
+                rows.forEach((row, index) => {
+                    if (index > 0) {
+                        const amountCell = row.cells[1];
+                        amountCell.classList.remove('loading-amount');
+                        amountCell.innerHTML = '0';
+                    }
+                });
+            } finally {
+                calculateButton.disabled = false;
+            }
         }
 
         function getFreeBatteries() {
@@ -314,7 +289,7 @@
 
         function closePanel() {
             document.getElementById('noBatteriesPanel').style.display = 'none';
-            document.body.classList.remove('no-scroll', 'no-click'); // Re-enable scrolling and clicking
+            document.body.classList.remove('no-scroll', 'no-click');
         }
 
         updateProgressBar();
