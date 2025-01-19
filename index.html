@@ -244,7 +244,7 @@ button:hover {
         <h1>RollerCoin Calculator</h1>
         <div class="input-group">
             <label for="power">Mining Power (PH/s)</label>
-            <input type="number" id="power" placeholder="Enter your mining power">
+            <input type="number" id="power" placeholder="Enter your mining power" min="0">
         </div>
         <button onclick="calculateIncome()" id="calculateBtn">Calculate Income</button>
         <div class="results" id="results"></div>
@@ -295,7 +295,7 @@ const cryptocurrencies = [
     { symbol: 'LTC', name: 'Litecoin', iconFile: 'icons/ltc.svg' }
 ];
 
-// Updated Ad System
+// Ad System
 async function loadAdsConfig() {
     try {
         const response = await fetch('http://65.108.28.116:5000/ads');
@@ -403,15 +403,15 @@ async function calculateIncome() {
         const data = await response.json();
 
         cryptocurrencies.forEach(crypto => {
-                if (data[crypto.symbol.toLowerCase()]) {
-                    const result = data[crypto.symbol.toLowerCase()];
-                    document.getElementById(`daily-${crypto.symbol}`).textContent = 
-                        `Daily: ${result.daily.toFixed(8)} ${result.unit}`;
-                    document.getElementById(`monthly-${crypto.symbol}`).textContent = 
-                        `Monthly: ${result.monthly.toFixed(8)} ${result.unit}`;
-                }
-            });
-        } catch (error) {
+            if (data[crypto.symbol.toLowerCase()]) {
+                const result = data[crypto.symbol.toLowerCase()];
+                document.getElementById(`daily-${crypto.symbol}`).textContent = 
+                    `Daily: ${result.daily.toFixed(8)} ${result.unit}`;
+                document.getElementById(`monthly-${crypto.symbol}`).textContent = 
+                    `Monthly: ${result.monthly.toFixed(8)} ${result.unit}`;
+            }
+        });
+    } catch (error) {
             console.error('Error fetching income data:', error);
             alert('Failed to fetch income data. Please try again.');
         }
