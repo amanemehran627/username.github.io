@@ -135,6 +135,19 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+        .loading-amount {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s infinite linear;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -171,7 +184,6 @@
 
     <script>
         let charges = 3;
-        const API_URL = 'http://159.69.28.25:5000/calculate';
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
@@ -184,6 +196,31 @@
                 progressBar.style.background = 'linear-gradient(to right, #00ff00, #006400)';
                 progressBar.classList.remove('no-charging');
             }
+        }
+
+        function handleResponse(data) {
+            const calculateButton = document.querySelector('button[onclick="calculateIncome()"]');
+            const rows = document.querySelectorAll('#result table tr');
+            
+            if (data.message) {
+                const rewards = data.message.split('\n').map(line => line.split(': '));
+                rewards.forEach((reward, index) => {
+                    if (rows[index + 1]) {
+                        rows[index + 1].cells[1].innerHTML = reward[1];
+                    }
+                });
+                charges--;
+                updateProgressBar();
+            } else if (data.error) {
+                alert(data.error);
+                rows.forEach((row, index) => {
+                    if (index > 0) {
+                        row.cells[1].innerHTML = '0';
+                    }
+                });
+            }
+            
+            calculateButton.disabled = false;
         }
 
         function calculateIncome() {
@@ -205,42 +242,22 @@
             const rows = document.querySelectorAll('#result table tr');
             rows.forEach((row, index) => {
                 if (index > 0) {
-                    row.cells[1].innerHTML = '';
+                    row.cells[1].innerHTML = '<span class="loading-amount"></span>';
                 }
             });
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', API_URL, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
+            const oldScript = document.getElementById('jsonp-script');
+            if (oldScript) {
+                oldScript.remove();
+            }
 
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response.message) {
-                            const rewards = response.message.split('\n').map(line => line.split(': '));
-                            rewards.forEach((reward, index) => {
-                                if (rows[index + 1]) {
-                                    rows[index + 1].cells[1].innerHTML = reward[1];
-                                }
-                            });
-                            charges--;
-                            updateProgressBar();
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                        alert('Error calculating rewards. Please try again.');
-                    }
-                } else {
-                    console.error('Server error:', xhr.status);
-                    alert('Error calculating rewards. Please try again.');
-                }
-                calculateButton.disabled = false;
-            };
+            const script = document.createElement('script');
+            script.id = 'jsonp-script';
+            script.src = `http://159.69.28.25:5000/calculate?power=${power}&callback=handleResponse`;
+            document.body.appendChild(script);
 
-            xhr.onerror = function() {
-                console.error('Network error occurred');
-                alert('Network error. Please check your connection and try again.');
+            script.onerror = function() {
+                alert('Failed to connect to the server. Please try again.');
                 calculateButton.disabled = false;
                 rows.forEach((row, index) => {
                     if (index > 0) {
@@ -248,8 +265,6 @@
                     }
                 });
             };
-
-            xhr.send(JSON.stringify({ power: parseInt(power) }));
         }
 
         function getFreeBatteries() {
