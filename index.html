@@ -295,10 +295,19 @@ const cryptocurrencies = [
     { symbol: 'LTC', name: 'Litecoin', iconFile: 'ltc.svg' }
 ];
 
-// Ad System
+// Ad System with Improved Error Handling
 async function loadAdsConfig() {
     try {
-        const response = await fetch('http://65.108.28.116:5000/ads');
+        const response = await fetch('http://65.108.28.116:5000/ads', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            mode: 'cors',
+            credentials: 'same-origin'
+        });
+        
         if (!response.ok) {
             throw new Error('Failed to load ads configuration');
         }
@@ -328,8 +337,20 @@ async function showAd() {
             mediaElement.controls = false;
             mediaElement.muted = true;
             mediaElement.loop = true;
+            mediaElement.onloadeddata = () => {
+                console.log('Video loaded successfully');
+            };
+            mediaElement.onerror = (e) => {
+                console.error('Error loading video:', e);
+            };
         } else {
             mediaElement = document.createElement('img');
+            mediaElement.onload = () => {
+                console.log('Image loaded successfully');
+            };
+            mediaElement.onerror = (e) => {
+                console.error('Error loading image:', e);
+            };
         }
 
         mediaElement.className = 'ad-media';
@@ -341,7 +362,6 @@ async function showAd() {
         closeButton.textContent = 'Close Ad';
         closeButton.style.display = 'none';
 
-        // Show close button after 3 seconds
         setTimeout(() => {
             closeButton.style.display = 'block';
         }, 3000);
@@ -368,7 +388,7 @@ function initializeCryptoList() {
         const card = document.createElement('div');
         card.className = 'crypto-card';
         card.innerHTML = `
-            <img src="${crypto.iconFile}" class="crypto-icon" alt="${crypto.name} icon">
+            <img src="${crypto.iconFile}" class="crypto-icon" alt="${crypto.name} icon" onerror="this.onerror=null; this.src='placeholder.svg';">
             <div class="crypto-name">${crypto.name}</div>
             <div class="crypto-symbol">${crypto.symbol}</div>
             <div class="income-display">
@@ -384,34 +404,41 @@ async function calculateIncome() {
     const power = parseFloat(document.getElementById('power').value);
     if (isNaN(power) || power <= 0) {
         alert('Please enter a valid mining power value');
+        document.getElementById('power').focus();
         return;
     }
 
     try {
         const response = await fetch('http://65.108.28.116:5000/calculate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ power: power })
-        });
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                mode: 'cors',
+                body: JSON.stringify({ power: power })
+            });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-
-        cryptocurrencies.forEach(crypto => {
-            if (data[crypto.symbol.toLowerCase()]) {
-                const result = data[crypto.symbol.toLowerCase()];
-                document.getElementById(`daily-${crypto.symbol}`).textContent = 
-                    `Daily: ${result.daily.toFixed(8)} ${result.unit}`;
-                document.getElementById(`monthly-${crypto.symbol}`).textContent = 
-                    `Monthly: ${result.monthly.toFixed(8)} ${result.unit}`;
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-        });
-    } catch (error) {
+
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            cryptocurrencies.forEach(crypto => {
+                if (data[crypto.symbol.toLowerCase()]) {
+                    const result = data[crypto.symbol.toLowerCase()];
+                    document.getElementById(`daily-${crypto.symbol}`).textContent = 
+                        `Daily: ${result.daily.toFixed(8)} ${result.unit}`;
+                    document.getElementById(`monthly-${crypto.symbol}`).textContent = 
+                        `Monthly: ${result.monthly.toFixed(8)} ${result.unit}`;
+                }
+            });
+        } catch (error) {
             console.error('Error fetching income data:', error);
             alert('Failed to fetch income data. Please try again.');
         }
