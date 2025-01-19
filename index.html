@@ -159,7 +159,7 @@
 <body>
     <h1>RollerCoin Calculator</h1>
     <input type="number" id="powerInput" placeholder="Enter your power in PH/s">
-    <button onclick="calculateIncome()">Calculate</button>
+    <button id="calculateBtn" onclick="calculateIncome()">Calculate</button>
     <div class="progress-bar-container">
         <div class="progress-bar" id="progressBar"></div>
     </div>
@@ -192,17 +192,19 @@
         let charges = 3;
         const API_URL = 'http://159.69.28.25:5000/calculate';
 
+        function showError(message) {
+            alert(message);
+            console.error(message);
+        }
+
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
             const percentage = (charges / 3) * 100;
             progressBar.style.width = `${percentage}%`;
-            if (charges <= 0) {
-                progressBar.style.background = 'linear-gradient(to right, #555, #000)';
-                progressBar.classList.add('no-charging');
-            } else {
-                progressBar.style.background = 'linear-gradient(to right, #00ff00, #006400)';
-                progressBar.classList.remove('no-charging');
-            }
+            progressBar.style.background = charges <= 0 
+                ? 'linear-gradient(to right, #555, #000)'
+                : 'linear-gradient(to right, #00ff00, #006400)';
+            progressBar.classList.toggle('no-charging', charges <= 0);
         }
 
         async function calculateIncome() {
@@ -212,19 +214,18 @@
                 return;
             }
 
-            const power = document.getElementById('powerInput').value;
-            if (!power) {
-                alert('Please enter your power.');
+            const powerInput = document.getElementById('powerInput');
+            const power = powerInput.value;
+
+            if (!power || isNaN(power) || power <= 0) {
+                showError('Please enter a valid power value greater than 0.');
                 return;
             }
 
-            const calculateButton = document.querySelector('button[onclick="calculateIncome()"]');
+            const calculateButton = document.getElementById('calculateBtn');
             calculateButton.disabled = true;
 
-            const resultDiv = document.getElementById('result');
-            const rows = resultDiv.querySelectorAll('table tr');
-            
-            // Show loading state
+            const rows = document.querySelectorAll('#result table tr');
             rows.forEach((row, index) => {
                 if (index > 0) {
                     const amountCell = row.cells[1];
@@ -239,18 +240,29 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'Origin': window.location.origin
                     },
-                    body: JSON.stringify({ power: parseInt(power) })
+                    mode: 'cors',
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ 
+                        power: parseInt(power),
+                        timestamp: Date.now()
+                    })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Server responded with status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                
+                console.log('Server response:', data);
+
                 if (data.error) {
                     throw new Error(data.error);
+                }
+
+                if (!data.message) {
+                    throw new Error('Invalid server response format');
                 }
 
                 const rewards = data.message.split('\n').map(line => line.split(': '));
@@ -259,16 +271,15 @@
                     if (row) {
                         const amountCell = row.cells[1];
                         amountCell.classList.remove('loading-amount');
-                        amountCell.innerHTML = reward[1];
+                        amountCell.innerHTML = reward[1] || '0';
                     }
                 });
 
                 charges--;
                 updateProgressBar();
-
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while calculating the income.');
+                console.error('API Error:', error);
+                showError('Failed to calculate income. Please try again later.');
                 rows.forEach((row, index) => {
                     if (index > 0) {
                         const amountCell = row.cells[1];
@@ -292,7 +303,10 @@
             document.body.classList.remove('no-scroll', 'no-click');
         }
 
-        updateProgressBar();
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProgressBar();
+        });
     </script>
 </body>
 </html>
